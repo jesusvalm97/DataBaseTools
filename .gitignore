@@ -1,0 +1,19 @@
+*.suo
+*.user
+*.sln.docstates
+.vs/
+[Aa]pp.config
+[Ww]eb.config
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+*.v2
