@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using DataBaseTools.NetCore.General;
+using Microsoft.Win32.SafeHandles;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -10,11 +11,15 @@ using System.Threading.Tasks;
 
 namespace DataBaseTools.NetCore.Oracle
 {
-    public static class DataBase
+    public class DataBase : DataBaseGeneral
     {
-        public static OracleConnection CreateOracleConnection(string stringConnection) => new OracleConnection(stringConnection);
+        public DataBase(string connectionString) : base(connectionString)
+        {
+        }
 
-        public static OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query)
+        public OracleConnection CreateOracleConnection() => new OracleConnection(ConnectionString);
+
+        public OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query)
         {
             OracleCommand oracleCommand = new OracleCommand();
             oracleCommand.Connection = oracleConnection;
@@ -24,7 +29,7 @@ namespace DataBaseTools.NetCore.Oracle
             return oracleCommand;
         }
 
-        public static DataSet ExecuteDataSet(OracleCommand cmd)
+        public DataSet ExecuteDataSet(OracleCommand cmd)
         {
             DataSet ds = new DataSet();
             OracleDataAdapter da = new OracleDataAdapter();
@@ -47,14 +52,14 @@ namespace DataBaseTools.NetCore.Oracle
         /// <param name="safeAccessTokenHandle"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public static DataSet ExecuteDataSet(SafeAccessTokenHandle safeAccessTokenHandle, OracleCommand cmd)
+        public DataSet ExecuteDataSet(SafeAccessTokenHandle safeAccessTokenHandle, OracleCommand cmd)
         {
             DataSet ds = new DataSet();
             OracleDataAdapter da = new OracleDataAdapter();
             try
             {
                 WindowsIdentity.RunImpersonated(safeAccessTokenHandle, () => {
-                    cmd.CommandTimeout = 600;
+                    cmd.CommandTimeout = 0;
                     da.SelectCommand = cmd;
                     da.Fill(ds);
                 });
@@ -66,9 +71,9 @@ namespace DataBaseTools.NetCore.Oracle
             return ds;
         }
 
-        public static DataSet ExecuteQuery(CommandType commandType, OracleConnection connection, string query, SafeAccessTokenHandle safeAccessTokenHandle = null)
+        public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null)
         {
-            using (OracleCommand command = CreateOracleCommand(commandType, connection, query))
+            using (OracleCommand command = CreateOracleCommand(commandType, CreateOracleConnection(), query))
             {
                 if (safeAccessTokenHandle == null)
                 {
@@ -76,22 +81,6 @@ namespace DataBaseTools.NetCore.Oracle
                 }
                 else
                 {
-                    return ExecuteDataSet(safeAccessTokenHandle, command);
-                }
-            }
-        }
-
-        public static DataSet ExecuteQuery(CommandType commandType, OracleConnection connection, string query, string domainDB = null, string userNameDB = null, string passWordDB = null)
-        {
-            using (OracleCommand command = CreateOracleCommand(commandType, connection, query))
-            {
-                if (string.IsNullOrEmpty(domainDB) || string.IsNullOrEmpty(userNameDB) || string.IsNullOrEmpty(passWordDB))
-                {
-                    return ExecuteDataSet(command);
-                }
-                else
-                {
-                    SafeAccessTokenHandle safeAccessTokenHandle = General.DataBase.GetTokenDomainConnection(domainDB, userNameDB, passWordDB);
                     return ExecuteDataSet(safeAccessTokenHandle, command);
                 }
             }

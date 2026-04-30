@@ -10,8 +10,30 @@ using System.Threading.Tasks;
 
 namespace DataBaseTools.NetCore.General
 {
-    public static class DataBase
+    public class DataBaseGeneral
     {
+        public string ConnectionString { get; set; }
+        public string Domain { get; set; }
+        public string UserName { get; set; }
+        public string Password { get; set; }
+
+        public DataBaseGeneral()
+        {
+        }
+
+        public DataBaseGeneral(string connectionString)
+        {
+            ConnectionString = connectionString;
+        }
+
+        public DataBaseGeneral(string connectionString, string domain, string userName, string password)
+        {
+            ConnectionString = connectionString;
+            Domain = domain;
+            UserName = userName;
+            Password = password;
+        }
+
         #region Conexion por cuenta dominio
 
         /// <summary>
@@ -35,12 +57,12 @@ namespace DataBaseTools.NetCore.General
         /// <param name="userName"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public static SafeAccessTokenHandle GetTokenDomainConnection(string domain, string userName, string password)
+        public SafeAccessTokenHandle GetTokenDomainConnection()
         {
             const int LOGON32_LOGON_INTERACTIVE = 2;
             const int LOGON32_PROVIDER_DEFAULT = 0;
 
-            bool returnValue = LogonUser(userName, domain, password, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, out SafeAccessTokenHandle safeAccessTokenHandle);
+            bool returnValue = LogonUser(UserName, Domain, Password, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, out SafeAccessTokenHandle safeAccessTokenHandle);
 
             if (!returnValue)
             {
@@ -53,13 +75,13 @@ namespace DataBaseTools.NetCore.General
 
         #endregion
 
-        public static string GetStringFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? string.Empty : Convert.ToString(dataRow[column]);
+        public string GetStringFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? string.Empty : Convert.ToString(dataRow[column]);
 
-        public static char GetCharFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? ' ' : Convert.ToChar(dataRow[column]);
+        public char GetCharFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? ' ' : Convert.ToChar(dataRow[column]);
 
-        public static int GetIntFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? 0 : Convert.ToInt32(dataRow[column]);
+        public int GetIntFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? 0 : Convert.ToInt32(dataRow[column]);
 
-        public static byte GetByteFromDataRow(DataRow dataRow, int column)
+        public byte GetByteFromDataRow(DataRow dataRow, int column)
         {
             var columnValue = dataRow[column];
 
@@ -69,8 +91,8 @@ namespace DataBaseTools.NetCore.General
                 return Convert.ToByte(columnValue);
         }
 
-        public static bool GetBooleanFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? false : Convert.ToBoolean(dataRow[column]);
+        public bool GetBooleanFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? false : Convert.ToBoolean(dataRow[column]);
 
-        public static DateTime GetDateTimeFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? new DateTime() : Convert.ToDateTime(dataRow[column]);
+        public DateTime GetDateTimeFromDataRow(DataRow dataRow, int column) => dataRow[column] == DBNull.Value ? new DateTime() : Convert.ToDateTime(dataRow[column]);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using DataBaseTools.NetCore.General;
+using Microsoft.Win32.SafeHandles;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,11 +11,19 @@ using System.Threading.Tasks;
 
 namespace DataBaseTools.NetCore.SQLServer
 {
-    public static class DataBase
+    public class DataBase : DataBaseGeneral
     {
-        public static SqlConnection CreateSqlConnection(string stringConnection) => new SqlConnection(stringConnection);
+        public DataBase(string connectionString) : base(connectionString)
+        {
+        }
 
-        public static SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query)
+        public DataBase(string connectionString, string domain, string userName, string password) : base(connectionString, domain, userName, password)
+        {
+        }
+
+        public SqlConnection CreateSqlConnection(string stringConnection) => new SqlConnection(stringConnection);
+
+        public SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query)
         {
             SqlCommand sqlCommand = new SqlCommand();
             sqlCommand.Connection = sqlConnection;
@@ -24,7 +33,7 @@ namespace DataBaseTools.NetCore.SQLServer
             return sqlCommand;
         }
 
-        public static DataSet ExecuteDataSet(SqlCommand cmd)
+        public DataSet ExecuteDataSet(SqlCommand cmd)
         {
             DataSet ds = new DataSet();
             SqlDataAdapter da = new SqlDataAdapter();
@@ -47,14 +56,14 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <param name="safeAccessTokenHandle"></param>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        public static DataSet ExecuteDataSet(SafeAccessTokenHandle safeAccessTokenHandle, SqlCommand cmd)
+        public DataSet ExecuteDataSet(SafeAccessTokenHandle safeAccessTokenHandle, SqlCommand cmd)
         {
             DataSet ds = new DataSet();
             SqlDataAdapter da = new SqlDataAdapter();
             try
             {
                 WindowsIdentity.RunImpersonated(safeAccessTokenHandle, () => {
-                    cmd.CommandTimeout = 600;
+                    cmd.CommandTimeout = 0;
                     da.SelectCommand = cmd;
                     da.Fill(ds);
                 });
@@ -66,7 +75,7 @@ namespace DataBaseTools.NetCore.SQLServer
             return ds;
         }
 
-        public static DataSet ExecuteQuery(CommandType commandType, SqlConnection connection, string query, SafeAccessTokenHandle safeAccessTokenHandle = null)
+        public DataSet ExecuteQuery(CommandType commandType, SqlConnection connection, string query, SafeAccessTokenHandle safeAccessTokenHandle = null)
         {
             using (SqlCommand command = CreateSqlCommand(commandType, connection, query))
             {
@@ -76,22 +85,6 @@ namespace DataBaseTools.NetCore.SQLServer
                 }
                 else
                 {
-                    return ExecuteDataSet(safeAccessTokenHandle, command);
-                }
-            }
-        }
-
-        public static DataSet ExecuteQuery(CommandType commandType, SqlConnection connection, string query, string domainDB = null, string userNameDB = null, string passWordDB = null)
-        {
-            using (SqlCommand command = CreateSqlCommand(commandType, connection, query))
-            {
-                if (string.IsNullOrEmpty(domainDB) || string.IsNullOrEmpty(userNameDB) || string.IsNullOrEmpty(passWordDB))
-                {
-                    return ExecuteDataSet(command);
-                }
-                else
-                {
-                    SafeAccessTokenHandle safeAccessTokenHandle = General.DataBase.GetTokenDomainConnection(domainDB, userNameDB, passWordDB);
                     return ExecuteDataSet(safeAccessTokenHandle, command);
                 }
             }
