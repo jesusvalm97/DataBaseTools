@@ -48,7 +48,7 @@ namespace DataBaseTools.NetCore.Oracle
             OracleDataAdapter da = new OracleDataAdapter();
             try
             {
-                cmd.CommandTimeout = 600;
+                cmd.CommandTimeout = 0;
                 da.SelectCommand = cmd;
                 da.Fill(ds);
             }
