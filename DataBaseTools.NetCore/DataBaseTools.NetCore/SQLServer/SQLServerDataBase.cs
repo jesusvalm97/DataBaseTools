@@ -1,7 +1,8 @@
 ﻿using DataBaseTools.NetCore.General;
-using Microsoft.Win32.SafeHandles;
 using Microsoft.Data.SqlClient;
+using Microsoft.Win32.SafeHandles;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Security.Principal;
 
@@ -33,12 +34,20 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <param name="sqlConnection">Conexión de SQLServer.</param>
         /// <param name="query">Consulta o procedimiento almacenado a ejecutar.</param>
         /// <returns>Comando de SQLServer configurado.</returns>
-        public SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query)
+        public SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query, Dictionary<string, object> parameters = null)
         {
             SqlCommand sqlCommand = new SqlCommand();
             sqlCommand.Connection = sqlConnection;
             sqlCommand.CommandText = query;
             sqlCommand.CommandType = commandType;
+            
+            if (parameters != null)
+            {
+                foreach (var parameter in parameters)
+                {
+                    sqlCommand.Parameters.Add(new SqlParameter(parameter.Key, parameter.Value));
+                }
+            }
 
             return sqlCommand;
         }
@@ -98,9 +107,9 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <param name="query">La consulta SQL o el procedimiento almacenado a ejecutar.</param>
         /// <param name="safeAccessTokenHandle">Un token de acceso de Windows opcional para la suplantación durante la ejecución de la consulta.</param>
         /// <returns>Un DataSet que contiene los resultados de la consulta ejecutada.</returns>
-        public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null)
+        public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null, Dictionary<string, object> parameters = null)
         {
-            using (SqlCommand command = CreateSqlCommand(commandType, CreateSqlConnection(), query))
+            using (SqlCommand command = CreateSqlCommand(commandType, CreateSqlConnection(), query, parameters))
             {
                 if (safeAccessTokenHandle == null)
                 {

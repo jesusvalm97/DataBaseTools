@@ -1,4 +1,5 @@
 ﻿using Oracle.ManagedDataAccess.Client;
+using System.Collections.Generic;
 using System.Data;
 
 namespace DataBaseTools.NetCore.Oracle
@@ -20,8 +21,9 @@ namespace DataBaseTools.NetCore.Oracle
         /// <param name="commandType">Tipo de comando a ejecutar (StoredProcedure, Text, etc.).</param>
         /// <param name="oracleConnection">Conexión de oracle.</param>
         /// <param name="query">Consulta o procedimiento almacenado a ejecutar.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>Comando de Oracle configurado.</returns>
-        public OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query);
+        public OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query, Dictionary<string, object> parameters = null);
 
         /// <summary>
         /// DataSet con el resultado de la ejecución del comando de Oracle proporcionado.
@@ -35,7 +37,8 @@ namespace DataBaseTools.NetCore.Oracle
         /// </summary>
         /// <param name="commandType">Tipo de comando a ajecutar (StoredProcedure, Text, etc.</param>
         /// <param name="query">Consulta o procedmiento almacenado a ejecutar.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>DataSet con los resultados de la ejecución del comando.</returns>
-        public DataSet ExecuteQuery(CommandType commandType, string query);
+        public DataSet ExecuteQuery(CommandType commandType, string query, Dictionary<string, object> parameters = null);
     }
 }

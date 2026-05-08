@@ -1,5 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Win32.SafeHandles;
+using System.Collections.Generic;
 using System.Data;
 
 namespace DataBaseTools.NetCore.SQLServer
@@ -21,8 +22,9 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <param name="commandType">Tipo de comando a ejecutar (StoredProcedure, Text, etc.).</param>
         /// <param name="sqlConnection">Conexión de SQLServer.</param>
         /// <param name="query">Consulta o procedimiento almacenado a ejecutar.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>Comando de SQLServer configurado.</returns>
-        public SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query);
+        public SqlCommand CreateSqlCommand(CommandType commandType, SqlConnection sqlConnection, string query, Dictionary<string, object> parameters = null);
 
         /// <summary>
         /// DataSet con el resultado de la ejecución del comando de SQLServer proporcionado.
@@ -46,7 +48,8 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <param name="commandType">Especifica cómo se interpreta la cadena de comando, como Text o StoredProcedure.</param>
         /// <param name="query">La consulta SQL o el procedimiento almacenado a ejecutar.</param>
         /// <param name="safeAccessTokenHandle">Un token de acceso de Windows opcional para la suplantación durante la ejecución de la consulta.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>Un DataSet que contiene los resultados de la consulta ejecutada.</returns>
-        public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null);
+        public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null, Dictionary<string, object> parameters = null);
     }
 }

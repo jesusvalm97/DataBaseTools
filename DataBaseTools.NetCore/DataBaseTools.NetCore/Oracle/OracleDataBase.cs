@@ -1,6 +1,7 @@
 ﻿using DataBaseTools.NetCore.General;
 using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Collections.Generic;
 using System.Data;
 
 namespace DataBaseTools.NetCore.Oracle
@@ -26,13 +27,22 @@ namespace DataBaseTools.NetCore.Oracle
         /// <param name="commandType">Tipo de comando a ejecutar (StoredProcedure, Text, etc.).</param>
         /// <param name="oracleConnection">Conexión de oracle.</param>
         /// <param name="query">Consulta o procedimiento almacenado a ejecutar.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>Comando de Oracle configurado.</returns>
-        public OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query)
+        public OracleCommand CreateOracleCommand(CommandType commandType, OracleConnection oracleConnection, string query, Dictionary<string, object> parameters = null)
         {
             OracleCommand oracleCommand = new OracleCommand();
             oracleCommand.Connection = oracleConnection;
             oracleCommand.CommandText = query;
             oracleCommand.CommandType = commandType;
+
+            if (parameters != null)
+            {
+                foreach (var parameter in parameters)
+                {
+                    oracleCommand.Parameters.Add(new OracleParameter(parameter.Key, parameter.Value));
+                }
+            }
 
             return oracleCommand;
         }
@@ -64,10 +74,11 @@ namespace DataBaseTools.NetCore.Oracle
         /// </summary>
         /// <param name="commandType">Tipo de comando a ajecutar (StoredProcedure, Text, etc.</param>
         /// <param name="query">Consulta o procedmiento almacenado a ejecutar.</param>
+        /// <param name="parameters">Parámetros opcionales para el comando.</param>
         /// <returns>DataSet con los resultados de la ejecución del comando.</returns>
-        public DataSet ExecuteQuery(CommandType commandType, string query)
+        public DataSet ExecuteQuery(CommandType commandType, string query, Dictionary<string, object> parameters = null)
         {
-            using (OracleCommand command = CreateOracleCommand(commandType, CreateOracleConnection(), query))
+            using (OracleCommand command = CreateOracleCommand(commandType, CreateOracleConnection(), query, parameters))
             {
                 return ExecuteDataSet(command);
             }
