@@ -55,17 +55,21 @@ namespace DataBaseTools.NetCore.Oracle
         public DataSet ExecuteDataSet(OracleCommand cmd)
         {
             DataSet ds = new DataSet();
-            OracleDataAdapter da = new OracleDataAdapter();
-            try
+
+            using (OracleDataAdapter da = new OracleDataAdapter())
             {
-                cmd.CommandTimeout = 0;
-                da.SelectCommand = cmd;
-                da.Fill(ds);
+                try
+                {
+                    cmd.CommandTimeout = 600;
+                    da.SelectCommand = cmd;
+                    da.Fill(ds);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+
             return ds;
         }
 
@@ -78,10 +82,33 @@ namespace DataBaseTools.NetCore.Oracle
         /// <returns>DataSet con los resultados de la ejecución del comando.</returns>
         public DataSet ExecuteQuery(CommandType commandType, string query, Dictionary<string, object> parameters = null)
         {
-            using (OracleCommand command = CreateOracleCommand(commandType, CreateOracleConnection(), query, parameters))
+            DataSet ds = new DataSet();
+            OracleConnection connection = null;
+            
+            try
             {
-                return ExecuteDataSet(command);
+                using (connection = CreateOracleConnection())
+                {
+                    using (OracleCommand command = CreateOracleCommand(commandType, connection, query, parameters))
+                    {
+                        ds = ExecuteDataSet(command);
+                    }
+                }
             }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection != null && connection.State != System.Data.ConnectionState.Closed)
+                {
+                    connection.Close();
+                    connection.Dispose();
+                }
+            }
+
+            return ds;
         }
     }
 }

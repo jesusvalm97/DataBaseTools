@@ -60,17 +60,21 @@ namespace DataBaseTools.NetCore.SQLServer
         public DataSet ExecuteDataSet(SqlCommand cmd)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter da = new SqlDataAdapter();
-            try
+
+            using (SqlDataAdapter da = new SqlDataAdapter())
             {
-                cmd.CommandTimeout = 600;
-                da.SelectCommand = cmd;
-                da.Fill(ds);
+                try
+                {
+                    cmd.CommandTimeout = 600;
+                    da.SelectCommand = cmd;
+                    da.Fill(ds);
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+
             return ds;
         }
 
@@ -83,19 +87,23 @@ namespace DataBaseTools.NetCore.SQLServer
         public DataSet ExecuteDataSet(SafeAccessTokenHandle safeAccessTokenHandle, SqlCommand cmd)
         {
             DataSet ds = new DataSet();
-            SqlDataAdapter da = new SqlDataAdapter();
-            try
+            using (SqlDataAdapter da = new SqlDataAdapter())
             {
-                WindowsIdentity.RunImpersonated(safeAccessTokenHandle, () => {
-                    cmd.CommandTimeout = 0;
-                    da.SelectCommand = cmd;
-                    da.Fill(ds);
-                });
+                try
+                {
+                    WindowsIdentity.RunImpersonated(safeAccessTokenHandle, () =>
+                    {
+                        cmd.CommandTimeout = 0;
+                        da.SelectCommand = cmd;
+                        da.Fill(ds);
+                    });
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+
             return ds;
         }
 
@@ -109,17 +117,40 @@ namespace DataBaseTools.NetCore.SQLServer
         /// <returns>Un DataSet que contiene los resultados de la consulta ejecutada.</returns>
         public DataSet ExecuteQuery(CommandType commandType, string query, SafeAccessTokenHandle safeAccessTokenHandle = null, Dictionary<string, object> parameters = null)
         {
-            using (SqlCommand command = CreateSqlCommand(commandType, CreateSqlConnection(), query, parameters))
+            DataSet ds = new DataSet();
+            SqlConnection connection = null;
+
+            try
             {
-                if (safeAccessTokenHandle == null)
+                using (connection = CreateSqlConnection())
                 {
-                    return ExecuteDataSet(command);
-                }
-                else
-                {
-                    return ExecuteDataSet(safeAccessTokenHandle, command);
+                    using (SqlCommand command = CreateSqlCommand(commandType, connection, query, parameters))
+                    {
+                        if (safeAccessTokenHandle == null)
+                        {
+                            ds = ExecuteDataSet(command);
+                        }
+                        else
+                        {
+                            ds = ExecuteDataSet(safeAccessTokenHandle, command);
+                        }
+                    }
                 }
             }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection != null && connection.State != System.Data.ConnectionState.Closed)
+                {
+                    connection.Close();
+                    connection.Dispose();
+                }
+            }
+
+            return ds;
         }
     }
 }
